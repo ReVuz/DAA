@@ -1,64 +1,74 @@
-#include<iostream>
-#include<limits.h>
+#include <cstdio>
+#include <queue>
+#include <vector>
+#include <iostream>
+ 
 using namespace std;
-
-int miniDist(int distance[], bool Tset[]) // finding minimum distance
+ 
+#define MAX 100001
+#define INF (1<<20)
+#define pii pair< int, int >
+#define pb(x) push_back(x)
+ 
+struct comp
 {
-    int minimum=INT_MAX,ind;
-              
-    for(int k=0;k<6;k++) 
-    {
-        if(Tset[k]==false && distance[k]<=minimum)      
+        bool operator()(const pii &a, const pii &b)
         {
-            minimum=distance[k];
-            ind=k;
+            return a.second > b.second;
         }
-    }
-    return ind;
-}
-
-void DijkstraAlgo(int graph[6][6],int src) // adjacency matrix 
-{
-    int distance[6]; // // array to calculate the minimum distance for each node                             
-    bool Tset[6];// boolean array to mark visited and unvisited for each node
-    
-     
-    for(int k = 0; k<6; k++)
-    {
-        distance[k] = INT_MAX;
-        Tset[k] = false;    
-    }
-    
-    distance[src] = 0;   // Source vertex distance is set 0               
-    
-    for(int k = 0; k<6; k++)                           
-    {
-        int m=miniDist(distance,Tset); 
-        Tset[m]=true;
-        for(int k = 0; k<6; k++)                  
-        {
-            // updating the distance of neighbouring vertex
-            if(!Tset[k] && graph[m][k] && distance[m]!=INT_MAX && distance[m]+graph[m][k]<distance[k])
-                distance[k]=distance[m]+graph[m][k];
-        }
-    }
-    cout<<"Vertex\t\tDistance from source vertex"<<endl;
-    for(int k = 0; k<6; k++)                      
-    { 
-        char str=65+k; 
-        cout<<str<<"\t\t\t"<<distance[k]<<endl;
-    }
-}
-
+};
+ 
+priority_queue<pii, vector<pii > , comp> Q;
+vector<pii > G[MAX];
+int D[MAX];
+bool F[MAX];
+ 
 int main()
 {
-    int graph[6][6]={
-        {0, 1, 2, 0, 0, 0},
-        {1, 0, 0, 5, 1, 0},
-        {2, 0, 0, 2, 3, 0},
-        {0, 5, 2, 0, 2, 2},
-        {0, 1, 3, 2, 0, 1},
-        {0, 0, 0, 2, 1, 0}};
-    DijkstraAlgo(graph,0);
-    return 0;                           
+    int i, u, v, w, sz, nodes, edges, starting;
+ 
+    // create graph
+    cout << "Enter the number of vertices and edges: ";
+    cin >> nodes >> edges;
+    cout << "Enter the edges with weigth: <source> <destination> <weigth>: \n";
+    for (i = 0; i < edges; i++)
+    {
+        cin >> u >> v >> w;
+        G[u].pb(pii(v, w));
+        G[v].pb(pii(u, w)); // for undirected
+    }
+    cout << "Enter the source node: ";
+    cin >> starting;
+ 
+    // initialize distance vector
+    for (i = 1; i <= nodes; i++)
+        D[i] = INF;
+    D[starting] = 0;
+    Q.push(pii(starting, 0));
+ 
+    // dijkstra
+    while (!Q.empty())
+    {
+        u = Q.top().first;
+        Q.pop();
+        if (F[u])
+            continue;
+        sz = G[u].size();
+        for (i = 0; i < sz; i++)
+        {
+            v = G[u][i].first;
+            w = G[u][i].second;
+            if (!F[v] && D[u] + w < D[v])
+            {
+                D[v] = D[u] + w;
+                Q.push(pii(v, D[v]));
+            }
+        }
+        F[u] = 1; // done with u
+    }
+ 
+    // result
+    for (i = 1; i <= nodes-1; i++)
+        cout << "Node " << i << ", min weight = " << D[i] << endl;
+    return 0;
 }
